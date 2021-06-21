@@ -30,7 +30,7 @@ class MealDetails extends React.Component {
             ingredients:null,
             measure:[],
             showInstruction:false,
-            time:10,
+            time:11,
             favorites:[],
             inFav:false
         }
