@@ -24,7 +24,7 @@ export default function FavMeal(props) {
         underlayColor="#e5e5e5"
         onPress={()=>{
             navigation.navigate('Meal Details',{
-                id:props.id
+                id:item.idMeal
             })
         }}
         >
@@ -58,6 +58,7 @@ const styles = StyleSheet.create({
         backgroundColor:"white",
         elevation:0,
         flexDirection:'column',
-        marginHorizontal:10
+        marginHorizontal:10,
+        marginBottom:5
     },
 })

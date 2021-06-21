@@ -6,7 +6,7 @@ import SplashScreen from './screen/SplashScreen.js'
 import {createStore} from 'redux'
 import {Provider} from 'react-redux'
 import favoriteReducer from './reducer/favoriteReducer'
-
+import Constants from 'expo-constants';
 
 
 export default function App() {
@@ -44,6 +44,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    //paddingTop: Constants.statusBarHeight,
   },
   
 });

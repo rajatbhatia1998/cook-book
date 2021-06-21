@@ -1,4 +1,4 @@
-import React,{useEffect,useState} from 'react'
+import React,{useEffect,useState,useRef} from 'react'
 import {View,
     Text,
     StyleSheet,
@@ -16,18 +16,56 @@ export default function FavoritesScreen(props) {
     
     //const ids = useSelector(state=>state.meals)
     const [ids,setIds] = useState([])
+    const arrowAnimation = useRef(new Animated.Value(0)).current
+    const [render,setRender] = useState(false)
+    const arrowMovement =  arrowAnimation.interpolate({
+        inputRange:[0,1],
+        outputRange:[0,100]
+    })
+    const arrowOpacity =  arrowAnimation.interpolate({
+        inputRange:[0,1],
+        outputRange:[0.3,0.99]
+    })
+
+
+    useEffect(()=>{
+        console.log('startign animation',arrowAnimation,arrowMovement,arrowOpacity)
+        
+       startAnimation()
+    },[arrowAnimation])
+
+    const startAnimation = ()=>{
+        Animated.loop(
+            Animated.timing(arrowAnimation, {
+                toValue: 1,
+                duration: 1000,
+                useNativeDriver:true
+              }),
+            {
+              iterations: 10
+            }
+          ).start(()=>{
+            resetAnimation()
+          })
+    }
+    const resetAnimation=()=>{
+        Animated.spring(arrowAnimation,{
+            toValue:0,
+            useNativeDriver:true
+        }).start()
+    }
     useEffect(()=>{
         getIdsAsync()
-       
     },[])
     const getIdsAsync = ()=>{
         AsyncStorage.getItem('Favorites',(err,result)=>{
-            console.log(result)
+            //console.log(result)
            setIds(JSON.parse(result))
            setRefreshing(false)
+           
         })
     }
-    console.log(ids)
+    //console.log(ids)
     const renderMeal=(itemData)=>{
         const item = itemData.item
         const navigation = props.navigation
@@ -41,6 +79,7 @@ export default function FavoritesScreen(props) {
     const onRefresh = React.useCallback(() => {
       setRefreshing(true);
       getIdsAsync()
+      startAnimation()
     }, [])
     return (
         <View style={styles.container}>
@@ -75,9 +114,14 @@ export default function FavoritesScreen(props) {
         <View>
                 <Text style={styles.title}>No Meals to Display</Text>
                 <Text style={styles.titleSmall}>Scroll Down to Refresh !</Text>
-                <View style={{flexDirection:'row',justifyContent:'center'}}>
+                <Animated.View style={{
+                    flexDirection:'row',justifyContent:'center',
+                    opacity:arrowOpacity,
+                    transform:[{translateY:arrowMovement}]}
+            
+            }>
                     <MaterialCommunityIcons color='black' size={100}  name="arrow-down-bold"/>
-                </View>
+                </Animated.View>
                
                 <FlatList
                 refreshControl={

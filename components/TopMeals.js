@@ -52,7 +52,7 @@ export default function TopMeals(props) {
             
             {topMeals.map(item=>{
                     return <TouchableWithoutFeedback
-                
+                    key={item.idMeal}
                     activeOpacity={1}
                     underlayColor="#e5e5e5"
                     onPress={()=>{
