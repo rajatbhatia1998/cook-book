@@ -56,9 +56,11 @@ export default function TopMeals(props) {
                     activeOpacity={1}
                     underlayColor="#e5e5e5"
                     onPress={()=>{
-                       
-                        //console.log("Item clicked",item)
-                        getItemDetails(item.idMeal)
+                        navigation.navigate('Meal Details',{
+                            id:item.idMeal
+                         })
+                        // //console.log("Item clicked",item)
+                        // getItemDetails(item.idMeal)
                     }}
                     >
                         <View  style={styles.card}>

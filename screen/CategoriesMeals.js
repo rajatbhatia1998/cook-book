@@ -7,12 +7,13 @@ import {View,
     Image,
     TouchableHighlight,
     ActivityIndicator,
-    RefreshControl
+    RefreshControl,
+    TouchableOpacity
 } from 'react-native'
 import Carousel from 'react-native-snap-carousel'
 import TopMeals from '../components/TopMeals'
 import Colors from '../constants/Colors'
-
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 
 
@@ -73,7 +74,15 @@ console.log(meals)
     return (
         
         <View style={styles.container}>
-
+            <View style={styles.headerBar}>
+                <TouchableOpacity
+                        onPress={()=>{
+                            navigation.goBack()
+                        }}
+                        >
+                            <MaterialCommunityIcons color='black' size={30}  name="arrow-left"/>
+                        </TouchableOpacity>
+            </View>
             <Text style={styles.header}>TOP MEALS</Text>
         
             <TopMeals navigation={navigation}/>
@@ -106,6 +115,11 @@ const styles = StyleSheet.create({
         flex:1,
         marginTop:24,
         flexDirection:'column'
+    },
+    headerBar:{
+        paddingLeft:10,
+        marginTop:-10,
+        marginBottom:10
     },
     card:{
         flex:1,

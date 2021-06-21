@@ -11,7 +11,10 @@ import {View,
     StatusBar,
     FlatList,
     Switch,
-    AsyncStorage
+    AsyncStorage,
+    Linking,
+    Animated,
+    Easing
     
 } from 'react-native'
 import {connect} from 'react-redux'
@@ -19,7 +22,7 @@ import setFavorites from '../action/favoriteAction'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Colors from '../constants/Colors'
 import{SharedElement} from 'react-native-shared-element'
-
+import Video from 'react-native-video'
 const {width:WIDTH,height:HEIGHT} = Dimensions.get('screen')
 
 class MealDetails extends React.Component {
@@ -30,23 +33,28 @@ class MealDetails extends React.Component {
             ingredients:null,
             measure:[],
             showInstruction:false,
-            time:11,
+            time:10,
             favorites:[],
             inFav:false
         }
-        this.navigation = this.props.navigation
-        this.id = this.props.route.params.id
-    }
+        this.navigation = this.props.navigation 
+        //console.log(this.props.route.params)
+        this.id = this.props.route.params.id  
+        this.player = null 
+        this.ingredientAnimation = new Animated.Value(WIDTH)
+        this.instructionAnimation = new Animated.Value(-WIDTH)
+        this.floaterAnimation = new Animated.Value(0)
+     }
     componentDidMount(){
-        // fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${this.id}`)
-        // .then(res=>res.json())
-        // .then(data=>this.setState({meal:data.meals[0]},()=>{
-        //     this.getIngredients()
-        // }))
+        fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${this.id}`)
+        .then(res=>res.json())
+        .then(data=>this.setState({meal:data.meals[0]},()=>{
+            this.getIngredients()
+        }))
         // console.log(this.props.route.params.item)
-        this.setState({meal:this.props.route.params.item},()=>{
-                this.getIngredients()
-             })
+        // this.setState({meal:this.props.route.params.item},()=>{
+        //         this.getIngredients()
+        //      })
         AsyncStorage.getItem('Favorites',(err,result)=>{
             if(result!==null){
                 const favs = JSON.parse(result)
@@ -57,7 +65,28 @@ class MealDetails extends React.Component {
                 }
             }
         })
-
+        Animated.timing(this.ingredientAnimation,{
+            toValue:0,
+            duration:800,
+            useNativeDriver:true,
+            easing:Easing.ease
+        }).start()
+    }
+    handleSwitchChange=(value)=>{
+        console.log(value)
+        if(value){
+            Animated.spring(this.instructionAnimation,{
+                toValue:0,
+                useNativeDriver:true
+            }).start()
+        }else{
+            Animated.spring(this.ingredientAnimation,{
+                toValue:0,
+                useNativeDriver:true
+            }).start()
+        }
+        this.setState({showInstruction:value})
+      
     }
     addToFav=(mealId)=>{     
         AsyncStorage.getItem('Favorites', (err, result) => {
@@ -124,10 +153,14 @@ class MealDetails extends React.Component {
             </View>
         )
     }
+    videoHandler=()=>{
+        console.log(this.state.meal)
+        Linking.openURL(this.state.meal.strYoutube)
+    }
     render() {
         
         const meal = this.state.meal
-        
+
         if(meal.length===0){
             return(
                 <View style={{position:'absolute',top:HEIGHT*0.48,left:WIDTH*0.48}}>
@@ -137,6 +170,7 @@ class MealDetails extends React.Component {
         }else{
            
             return (
+            
                 <SafeAreaView style={styles.container}>
             
                     <StatusBar
@@ -169,7 +203,7 @@ class MealDetails extends React.Component {
                                 <Switch
                                 trackColor={{ false: "#767577", true: Colors.primary }}
                                 thumbColor={this.state.showInstruction ? Colors.accent : "#f4f3f4"}
-                                onValueChange={(value)=>this.setState({showInstruction:value})}
+                                onValueChange={(value)=>this.handleSwitchChange(value)}
                                 value={this.state.showInstruction}
                                 />
                                
@@ -199,26 +233,39 @@ class MealDetails extends React.Component {
                     
                    {this.state.showInstruction?
                 
-                    <View style={{flex:1}}>
+                    <Animated.View style={{flex:1,transform:[{translateX:this.instructionAnimation}]}}>
                         <Text style={styles.title}>Instructions</Text>
                         <ScrollView>
                         <Text style={styles.instruction}>{meal.strInstructions}</Text>
                         </ScrollView>
-                    </View>
+                    </Animated.View>
                     :
-                    <View style={{flex:1}}>
+                    <Animated.View style={{flex:1,transform:[{translateX:this.ingredientAnimation}]}}>
                         <Text style={styles.title}>Ingredients</Text>
                         
                         <FlatList
+                        showsVerticalScrollIndicator={false}
                         keyExtractor={(item,index)=>"key"+item+index}
                         data={this.state.ingredients}
                         renderItem={this.renderIngredients}
                         style={styles.ingredients}
+                        contentContainerStyle={{paddingBottom:30}}
                         />
-                    </View>
+                    </Animated.View>
                 
                    }
-             
+                    { (meal.strSource || meal.strYoutube) && <View style={styles.options}>
+                        {meal.strYoutube && <TouchableOpacity onPress={this.videoHandler} style={{flexDirection:'row',alignItems:'center',justifyContent:'space-around'}}>
+                        <MaterialCommunityIcons color='red' size={20}  name="youtube" />
+                                <Text >  Watch Video </Text>
+                        </TouchableOpacity>}
+                        { meal.strSource &&<TouchableOpacity onPress={()=>Linking.openURL(meal.strSource)} style={{flexDirection:'row',alignItems:'center',justifyContent:'space-around'}}>
+                                <MaterialCommunityIcons color='orange' size={20}  name="blogger" />
+                                <Text>  Visit blog</Text>
+                        </TouchableOpacity>}
+                    
+                    </View>}
+                  
                 </SafeAreaView>
             )
         }
@@ -233,6 +280,21 @@ const styles = StyleSheet.create({
         flex:1,
         backgroundColor:'white'
     },
+    backgroundVideo: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        bottom: 0,
+        right: 0,
+      },
+      options:{
+          borderTopWidth:0.8,
+        borderTopColor:'#e5e5e5',
+        
+        padding:10,
+        flexDirection:'row',
+        justifyContent:'space-between'
+      },
     header:{
         flex:0.5,
         flexDirection:'row',

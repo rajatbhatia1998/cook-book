@@ -22,8 +22,8 @@ const HomeScreenNavigator=()=>{
         }}
         >
               
-                 <Stack.Screen name="Categories" component={CategoriesScreen}  />
-                 <Stack.Screen name="Meals" component={CategoriesMeals} />
+                 <Stack.Screen name="Categories" component={CategoriesScreen}   options={{ headerShown: false }} />
+                 <Stack.Screen name="Meals" component={CategoriesMeals}   options={{ headerShown: false }}/>
                  <Stack.Screen name="Meal Details" component={MealDetails}
                  options={{ headerShown: false }}
                  
